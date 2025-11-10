@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capitec Banking - Daily Lotto</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --capitec-blue: #0066cc;
+            --capitec-dark: #003d7a;
+            --capitec-light: #e6f2ff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--capitec-light) 0%, #ffffff 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: var(--capitec-blue);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .btn-capitec {
+            background: var(--capitec-blue);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-capitec:hover {
+            background: var(--capitec-dark);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .lotto-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .lotto-number:hover {
+            border-color: var(--capitec-blue);
+            transform: scale(1.1);
+        }
+
+        .lotto-number.selected {
+            background: var(--capitec-blue);
+            color: white;
+            border-color: var(--capitec-blue);
+        }
+
+        .lotto-number.winning {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, var(--capitec-blue) 0%, var(--capitec-dark) 100%);
+            color: white;
+        }
+
+        .ticket-card {
+            border-left: 4px solid var(--capitec-blue);
+        }
+
+        .alert-custom {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-university"></i> Capitec Bank
+            </a>
+            <span class="navbar-text text-white">
+                <i class="fas fa-user"></i> <span id="userName">John Doe</span>
+            </span>
+        </div>
+    </nav>
+
+    <!-- Alert Messages -->
+    <div id="alertContainer"></div>
+
+    <div class="container mt-4">
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 justify-content-center" id="mainTabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-tab="home" href="#"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="lotto" href="#"><i class="fas fa-ticket-alt"></i> Play Lotto</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="tickets" href="#"><i class="fas fa-receipt"></i> My Tickets</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="results" href="#"><i class="fas fa-trophy"></i> Results</a>
+            </li>
+        </ul>
+
+        <!-- Home Tab -->
+        <div id="homeTab" class="tab-content">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card balance-card">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-wallet"></i> Account Balance</h5>
+                            <h2 class="mt-3">R <span id="balance">5000.00</span></h2>
+                            <p class="mb-0">Account: <span id="accountNum">1234567890</span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h5 class="card-title"><i class="fas fa-gift"></i> Today's Jackpot</h5>
+                            <h2 class="text-success mt-3">R 25,000,000</h2>
+                            <p class="text-muted">Next draw in 24 hours</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-ticket-alt fa-3x text-primary mb-3"></i>
+                            <h5>Play Daily Lotto</h5>
+                            <p class="text-muted">R5 per ticket</p>
+                            <button class="btn btn-capitec" onclick="switchTab('lotto')">Play Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-receipt fa-3x text-success mb-3"></i>
+                            <h5>My Tickets</h5>
+                            <p class="text-muted"><span id="ticketCount">0</span> active tickets</p>
+                            <button class="btn btn-capitec" onclick="switchTab('tickets')">View Tickets</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-trophy fa-3x text-warning mb-3"></i>
+                            <h5>Latest Results</h5>
+                            <p class="text-muted">Check winning numbers</p>
+                            <button class="btn btn-capitec" onclick="switchTab('results')">View Results</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lotto Tab -->
+        <div id="lottoTab" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4"><i class="fas fa-dice"></i> Daily Lotto - Pick 6 Numbers</h3>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Select 6 numbers from 1-49. Each ticket costs R5.00
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Selected Numbers: <span id="selectedCount">0</span>/6</h5>
+                        <div id="selectedNumbers" class="mb-3"></div>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <button class="btn btn-outline-primary" onclick="quickPick()">
+                            <i class="fas fa-random"></i> Quick Pick
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearSelection()">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                    </div>
+
+                    <div id="numberGrid" class="text-center mb-4"></div>
+
+                    <div class="text-center">
+                        <button class="btn btn-capitec btn-lg" onclick="purchaseTicket()" id="purchaseBtn">
+                            <i class="fas fa-shopping-cart"></i> Purchase Ticket - R5.00
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Tickets Tab -->
+        <div id="ticketsTab" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4"><i class="fas fa-receipt"></i> My Lotto Tickets</h3>
+                    <div id="ticketsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Tab -->
+        <div id="resultsTab" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4"><i class="fas fa-trophy"></i> Draw Results</h3>
+                    
+                    <div class="text-center mb-4">
+                        <button class="btn btn-capitec" onclick="simulateDraw()">
+                            <i class="fas fa-sync-alt"></i> Simulate Draw
+                        </button>
+                    </div>
+
+                    <div id="drawResults"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mock API
+        const mockAPI = {
+            getUserData: () => ({
+                name: "John Doe",
+                accountNumber: "1234567890",
+                balance: 5000.00,
+                tickets: []
+            }),
+
+            purchaseLottoTicket: (numbers) => {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            success: true,
+                            ticket: {
+                                id: Date.now(),
+                                numbers: numbers,
+                                purchaseDate: new Date().toLocaleString(),
+                                drawDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString(),
+                                cost: 5.00,
+                                status: 'pending'
+                            }
+                        });
+                    }, 500);
+                });
+            },
+
+            getDrawResults: () => {
+                const nums = [];
+                while (nums.length < 6) {
+                    const num = Math.floor(Math.random() * 49) + 1;
+                    if (!nums.includes(num)) nums.push(num);
+                }
+                return {
+                    winningNumbers: nums.sort((a, b) => a - b),
+                    drawDate: new Date().toLocaleString(),
+                    jackpot: 25000000
+                };
+            }
+        };
+
+        // State
+        let user = mockAPI.getUserData();
+        let selectedNumbers = [];
+        let tickets = [];
+        let drawResults = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+            createNumberGrid();
+            setupTabNavigation();
+        });
+
+        function setupTabNavigation() {
+            document.querySelectorAll('#mainTabs .nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tab = link.getAttribute('data-tab');
+                    switchTab(tab);
+                });
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            document.getElementById(`${tab}Tab`).style.display = 'block';
+            
+            if (tab === 'tickets') displayTickets();
+            if (tab === 'results' && drawResults) displayDrawResults();
+        }
+
+        function createNumberGrid() {
+            const grid = document.getElementById('numberGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 1; i <= 49; i++) {
+                const numDiv = document.createElement('div');
+                numDiv.className = 'lotto-number';
+                numDiv.textContent = i;
+                numDiv.onclick = () => toggleNumber(i);
+                grid.appendChild(numDiv);
+            }
+        }
+
+        function toggleNumber(num) {
+            const index = selectedNumbers.indexOf(num);
+            
+            if (index > -1) {
+                selectedNumbers.splice(index, 1);
+            } else if (selectedNumbers.length < 6) {
+                selectedNumbers.push(num);
+            } else {
+                showAlert('You can only select 6 numbers', 'warning');
+                return;
+            }
+            
+            updateNumberDisplay();
+        }
+
+        function updateNumberDisplay() {
+            document.querySelectorAll('.lotto-number').forEach(el => {
+                const num = parseInt(el.textContent);
+                if (selectedNumbers.includes(num)) {
+                    el.classList.add('selected');
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+
+            document.getElementById('selectedCount').textContent = selectedNumbers.length;
+            
+            const selectedDiv = document.getElementById('selectedNumbers');
+            if (selectedNumbers.length > 0) {
+                selectedDiv.innerHTML = selectedNumbers.sort((a, b) => a - b).map(n => 
+                    `<span class="lotto-number selected">${n}</span>`
+                ).join('');
+            } else {
+                selectedDiv.innerHTML = '<p class="text-muted">No numbers selected</p>';
+            }
+        }
+
+        function quickPick() {
+            selectedNumbers = [];
+            while (selectedNumbers.length < 6) {
+                const num = Math.floor(Math.random() * 49) + 1;
+                if (!selectedNumbers.includes(num)) {
+                    selectedNumbers.push(num);
+                }
+            }
+            updateNumberDisplay();
+            showAlert('Quick pick numbers generated!', 'success');
+        }
+
+        function clearSelection() {
+            selectedNumbers = [];
+            updateNumberDisplay();
+        }
+
+        async function purchaseTicket() {
+            if (selectedNumbers.length !== 6) {
+                showAlert('Please select exactly 6 numbers', 'warning');
+                return;
+            }
+
+            if (user.balance < 5) {
+                showAlert('Insufficient funds', 'danger');
+                return;
+            }
+
+            const btn = document.getElementById('purchaseBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            const result = await mockAPI.purchaseLottoTicket([...selectedNumbers]);
+
+            if (result.success) {
+                user.balance -= 5;
+                tickets.push(result.ticket);
+                updateUI();
+                clearSelection();
+                showAlert('Ticket purchased successfully!', 'success');
+                
+                setTimeout(() => {
+                    switchTab('tickets');
+                }, 1500);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-shopping-cart"></i> Purchase Ticket - R5.00';
+        }
+
+        function displayTickets() {
+            const container = document.getElementById('ticketsList');
+            
+            if (tickets.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">No tickets purchased yet</p>
+                        <button class="btn btn-capitec" onclick="switchTab('lotto')">Buy Your First Ticket</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = tickets.map(ticket => `
+                <div class="card ticket-card mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-ticket-alt"></i> Ticket #${ticket.id}</h5>
+                                <p class="mb-1">Numbers: ${ticket.numbers.map(n => 
+                                    `<span class="lotto-number ${ticket.matches && ticket.matches.includes(n) ? 'winning' : 'selected'}">${n}</span>`
+                                ).join('')}</p>
+                                <small class="text-muted">Purchased: ${ticket.purchaseDate}</small>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <span class="badge ${ticket.status === 'pending' ? 'bg-warning' : ticket.prize > 0 ? 'bg-success' : 'bg-secondary'} mb-2">
+                                    ${ticket.status === 'pending' ? 'Pending Draw' : ticket.prize > 0 ? 'Winner!' : 'No Win'}
+                                </span>
+                                ${ticket.prize ? `<h4 class="text-success">Won: R${ticket.prize.toLocaleString()}</h4>` : ''}
+                                ${ticket.matchCount !== undefined ? `<p>Matches: ${ticket.matchCount}/6</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function simulateDraw() {
+            drawResults = mockAPI.getDrawResults();
+            
+            // Check all tickets
+            tickets = tickets.map(ticket => {
+                if (ticket.status === 'pending') {
+                    const matches = ticket.numbers.filter(n => drawResults.winningNumbers.includes(n));
+                    const matchCount = matches.length;
+                    let prize = 0;
+                    
+                    if (matchCount === 6) prize = 25000000;
+                    else if (matchCount === 5) prize = 50000;
+                    else if (matchCount === 4) prize = 1000;
+                    else if (matchCount === 3) prize = 50;
+                    
+                    if (prize > 0) {
+                        user.balance += prize;
+                    }
+                    
+                    return {
+                        ...ticket,
+                        status: 'drawn',
+                        matches: matches,
+                        matchCount: matchCount,
+                        prize: prize
+                    };
+                }
+                return ticket;
+            });
+
+            updateUI();
+            displayDrawResults();
+            showAlert('Draw completed! Check your tickets.', 'info');
+        }
+
+        function displayDrawResults() {
+            if (!drawResults) {
+                document.getElementById('drawResults').innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-hourglass-half fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">No draw results yet. Simulate a draw to see results.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('drawResults').innerHTML = `
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4 class="mb-3">Winning Numbers</h4>
+                        <div class="mb-3">
+                            ${drawResults.winningNumbers.map(n => 
+                                `<span class="lotto-number winning">${n}</span>`
+                            ).join('')}
+                        </div>
+                        <p class="text-muted">Draw Date: ${drawResults.drawDate}</p>
+                        <h5 class="text-success">Jackpot: R${drawResults.jackpot.toLocaleString()}</h5>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h5>Prize Breakdown</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Matches</th>
+                                <th>Prize</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>6 numbers</td><td class="text-success fw-bold">R25,000,000</td></tr>
+                            <tr><td>5 numbers</td><td class="text-success">R50,000</td></tr>
+                            <tr><td>4 numbers</td><td class="text-success">R1,000</td></tr>
+                            <tr><td>3 numbers</td><td class="text-success">R50</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function updateUI() {
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('balance').textContent = user.balance.toFixed(2);
+            document.getElementById('accountNum').textContent = user.accountNumber;
+            document.getElementById('ticketCount').textContent = tickets.filter(t => t.status === 'pending').length;
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show alert-custom`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.getElementById('alertContainer').appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
